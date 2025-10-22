@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body style="background: #000; color: #fff; padding: 20px; font-family: monospace;">
+    <h1>Video Chain Analyzer - Debug</h1>
+    <div id="status">Testing...</div>
+    <div id="result"></div>
+
+    <script>
+        async function test() {
+            const status = document.getElementById('status');
+            const result = document.getElementById('result');
+
+            try {
+                status.textContent = 'Calling /api/info...';
+                const response = await fetch('http://localhost:8001/api/info');
+                const data = await response.json();
+
+                status.textContent = 'SUCCESS!';
+                result.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                status.textContent = 'ERROR: ' + error.message;
+                result.textContent = error.stack;
+            }
+        }
+
+        test();
+    </script>
+</body>
+</html>

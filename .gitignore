@@ -1,0 +1,80 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+venv/
+env/
+ENV/
+*.log
+
+# Database
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Environment variables
+.env
+.env.local
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Project specific
+backend.log
+.backend.pid
+archive/
+missing_media_urls.txt
+remote_urls_to_download.txt
+server.log
+scan_output.log
+match_build.log
+*.pid
+
+# Downloaded media files (too large for git)
+https_/
+grok_downloads/
+merged_videos/
+generated_videos/
+
+# Large cache files
+video_data_smart.json
+video_data_smart_FULL.json
+similarity_graph_cache.json
+
+# User data JSON files
+*.json
+!alawii96.json
+!package.json
+!tsconfig.json
+!backend/alembic.ini
+!test_video_data.json
+!live_test_data.json
+!video_data_smart_small.json
+
+# Node.js
+node_modules/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+
+# Temporary files
+tmp/
+temp/
+*.tmp

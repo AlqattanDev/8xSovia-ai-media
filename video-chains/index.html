@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Chain Analyzer (Legacy)</title>
+    <link rel="stylesheet" href="/static/theme.css">
+    <style>
+        /* Deprecation Warning Banner */
+        .deprecation-banner {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            border-bottom: 3px solid #d63031;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .deprecation-banner h2 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .deprecation-banner p {
+            margin: 5px 0;
+            opacity: 0.95;
+        }
+
+        .deprecation-banner a {
+            color: #fff;
+            text-decoration: underline;
+            font-weight: bold;
+        }
+
+        /* Layout Specific Styles */
+        .page-header {
+            padding: var(--space-2xl) 0 var(--space-xl);
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: var(--space-xl);
+        }
+
+        .page-title {
+            font-size: var(--font-size-3xl);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--space-sm);
+        }
+
+        .page-subtitle {
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-base);
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+
+        .controls-row {
+            display: flex;
+            gap: var(--space-md);
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .control-group label {
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-medium);
+            color: var(--color-text-secondary);
+            white-space: nowrap;
+        }
+
+        .control-group input[type="number"] {
+            width: 80px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+
+        .stat-card {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: var(--font-size-3xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-text-primary);
+            display: block;
+            margin-bottom: var(--space-xs);
+        }
+
+        .stat-label {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+        }
+
+        /* Status Alert */
+        .status-alert {
+            background: var(--color-bg-elevated);
+            border: 1px solid var(--color-border);
+            border-left: 4px solid var(--color-accent-primary);
+            border-radius: var(--radius-md);
+            padding: var(--space-md);
+            margin-bottom: var(--space-xl);
+            display: none;
+        }
+
+        .status-alert.active {
+            display: block;
+        }
+
+        .status-alert.success {
+            border-left-color: var(--color-success);
+        }
+
+        .status-alert.error {
+            border-left-color: var(--color-error);
+        }
+
+        .status-content {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .status-message {
+            flex: 1;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--color-bg-tertiary);
+            border-radius: 2px;
+            margin-top: var(--space-sm);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--color-accent-primary);
+            border-radius: 2px;
+            transition: width var(--transition-base);
+        }
+
+        /* Chains List */
+        .chains-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xl);
+        }
+
+        .chain-card {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .chain-header {
+            padding: var(--space-lg);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chain-info h3 {
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-semibold);
+            margin-bottom: var(--space-xs);
+        }
+
+        .chain-meta {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+        }
+
+        .chain-actions {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        /* Video List */
+        .video-list {
+            padding: var(--space-lg);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .video-item {
+            background: var(--color-bg-elevated);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--radius-md);
+            padding: var(--space-md);
+            display: flex;
+            gap: var(--space-md);
+            align-items: center;
+            transition: all var(--transition-base);
+        }
+
+        .video-item:hover {
+            background: var(--color-bg-tertiary);
+            border-color: var(--color-border);
+        }
+
+        .video-sequence {
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-text-tertiary);
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .video-preview {
+            width: 160px;
+            height: 90px;
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .video-preview video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .video-filename {
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-medium);
+            color: var(--color-text-primary);
+            margin-bottom: var(--space-xs);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .video-metadata {
+            display: flex;
+            gap: var(--space-md);
+            font-size: var(--font-size-xs);
+            color: var(--color-text-tertiary);
+        }
+
+        .video-connector {
+            font-size: var(--font-size-xl);
+            color: var(--color-text-tertiary);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-2xl) var(--space-lg);
+            color: var(--color-text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            opacity: 0.3;
+            margin-bottom: var(--space-lg);
+        }
+
+        .empty-state h3 {
+            font-size: var(--font-size-xl);
+            margin-bottom: var(--space-sm);
+            color: var(--color-text-primary);
+        }
+
+        .empty-state p {
+            font-size: var(--font-size-sm);
+        }
+
+        /* Loading State */
+        .loading-state {
+            text-align: center;
+            padding: var(--space-xl);
+        }
+
+        .loading-state .spinner {
+            margin: 0 auto var(--space-md);
+        }
+    </style>
+</head>
+<body>
+    <!-- Deprecation Warning Banner -->
+    <div class="deprecation-banner">
+        <h2>⚠️ LEGACY VERSION - DO NOT USE ⚠️</h2>
+        <p>This is the old, confusing interface that shouldn't be used anymore.</p>
+        <p>📱 A new, modern, user-friendly version is being built.</p>
+        <p>🚧 This interface is kept for reference only - expect it to be replaced soon!</p>
+        <p style="margin-top: 15px; font-size: 14px; opacity: 0.9;">
+            For questions or to see progress on the new UI, check the documentation files.
+        </p>
+    </div>
+
+    <div class="container">
+        <!-- Page Header -->
+        <header class="page-header">
+            <h1 class="page-title">Video Chain Analyzer (LEGACY)</h1>
+            <p class="page-subtitle" style="color: #ff6b6b;">⚠️ Old interface - New version coming soon!</p>
+        </header>
+
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <div class="controls-row">
+                <button class="btn btn-primary" onclick="scanVideos()" id="scanBtn">
+                    Scan Videos
+                </button>
+                <button class="btn btn-primary" onclick="findChains()" id="findBtn" disabled>
+                    Find Chains
+                </button>
+
+                <div class="control-group">
+                    <label for="minLength">Min Length:</label>
+                    <input type="number" id="minLength" value="2" min="2" max="20">
+                    <span style="font-size: var(--font-size-xs); color: var(--color-text-tertiary); margin-left: var(--space-sm);">
+                        (Minimum videos per chain)
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Alert -->
+        <div class="status-alert" id="statusAlert">
+            <div class="status-content">
+                <div class="status-message" id="statusMessage"></div>
+            </div>
+            <div class="progress-bar" id="progressBar" style="display: none;">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="statsGrid" style="display: none;">
+            <div class="stat-card">
+                <span class="stat-value" id="totalVideos">0</span>
+                <span class="stat-label">Total Videos</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="totalChains">0</span>
+                <span class="stat-label">Chains Found</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="longestChain">0</span>
+                <span class="stat-label">Longest Chain</span>
+            </div>
+        </div>
+
+        <!-- Chains Container -->
+        <div id="chainsContainer"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8001';
+        let currentChains = [];
+        let progressInterval = null;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Page loaded, checking server status...');
+            checkServerStatus();
+        });
+
+        async function checkServerStatus() {
+            try {
+                console.log('Fetching API info...');
+                const response = await fetch(`${API_BASE}/api/info`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                console.log('Response received:', response.status);
+
+                const data = await response.json();
+                console.log('Data:', data);
+
+                if (data.videos > 0) {
+                    document.getElementById('findBtn').disabled = false;
+                    document.getElementById('totalVideos').textContent = data.videos;
+                    document.getElementById('statsGrid').style.display = 'grid';
+                    console.log('UI updated successfully');
+                }
+            } catch (error) {
+                console.error('Error checking server status:', error);
+                showStatus('Unable to connect to server. Please ensure the backend is running.', 'error');
+            }
+        }
+
+        async function pollProgress() {
+            try {
+                const response = await fetch(`${API_BASE}/api/progress`);
+                const progress = await response.json();
+
+                if (progress.status === 'analyzing' || progress.status === 'scanning' || progress.status === 'saving') {
+                    const percentage = progress.total > 0
+                        ? Math.round((progress.processed / progress.total) * 100)
+                        : 0;
+
+                    let message = progress.message;
+                    if (progress.total > 0) {
+                        message += ` (${progress.processed}/${progress.total} - ${percentage}%)`;
+                    }
+
+                    showStatus(message, 'info', percentage);
+                } else if (progress.status === 'complete') {
+                    showStatus(progress.message, 'success');
+                    document.getElementById('scanBtn').disabled = false;
+                    document.getElementById('findBtn').disabled = false;
+
+                    if (progressInterval) {
+                        clearInterval(progressInterval);
+                        progressInterval = null;
+                    }
+
+                    setTimeout(() => hideStatus(), 3000);
+                } else if (progress.status === 'error') {
+                    showStatus(`Error: ${progress.message}`, 'error');
+                    document.getElementById('scanBtn').disabled = false;
+
+                    if (progressInterval) {
+                        clearInterval(progressInterval);
+                        progressInterval = null;
+                    }
+                }
+            } catch (error) {
+                console.error('Progress poll error:', error);
+            }
+        }
+
+        async function scanVideos() {
+            const btn = document.getElementById('scanBtn');
+            btn.disabled = true;
+
+            showStatus('Starting video scan...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/scan`, { method: 'POST' });
+                const data = await response.json();
+
+                // Start polling for progress
+                if (progressInterval) clearInterval(progressInterval);
+                progressInterval = setInterval(pollProgress, 1000);
+                pollProgress();
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+                btn.disabled = false;
+            }
+        }
+
+        async function findChains() {
+            const minLength = document.getElementById('minLength').value;
+            const btn = document.getElementById('findBtn');
+
+            btn.disabled = true;
+            showStatus('Finding video chains...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/chains?min_length=${minLength}`);
+                const data = await response.json();
+
+                currentChains = data.chains;
+
+                // Update stats
+                document.getElementById('totalVideos').textContent = data.total_videos;
+                document.getElementById('totalChains').textContent = data.total_chains;
+                document.getElementById('longestChain').textContent =
+                    data.chains.length > 0 ? `${data.chains[0].length} videos` : '0';
+                document.getElementById('statsGrid').style.display = 'grid';
+
+                // Display chains
+                displayChains(data.chains);
+
+                showStatus(`Found ${data.total_chains} chains`, 'success');
+                setTimeout(() => hideStatus(), 3000);
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function displayChains(chains) {
+            const container = document.getElementById('chainsContainer');
+
+            if (chains.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔗</div>
+                        <h3>No chains found</h3>
+                        <p>Try adjusting the threshold or minimum length parameters</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `<div class="chains-list">${chains.map((chain, index) => `
+                <div class="chain-card">
+                    <div class="chain-header">
+                        <div class="chain-info">
+                            <h3>Chain #${index + 1}</h3>
+                            <div class="chain-meta">
+                                ${chain.length} videos &middot; ${chain.total_duration.toFixed(1)}s total duration
+                            </div>
+                        </div>
+                        <div class="chain-actions">
+                            <button class="btn btn-primary btn-sm" onclick="mergeChain(${index})">
+                                Merge Videos
+                            </button>
+                        </div>
+                    </div>
+                    <div class="video-list">
+                        ${chain.videos.map((video, vidIndex) => `
+                            <div class="video-item">
+                                <div class="video-sequence">${vidIndex + 1}</div>
+                                <div class="video-preview">
+                                    <video src="${API_BASE}/api/video/${video.path}"
+                                           onmouseenter="this.currentTime=0; this.play();"
+                                           onmouseleave="this.pause();"
+                                           muted></video>
+                                </div>
+                                <div class="video-details">
+                                    <div class="video-filename">${video.filename}</div>
+                                    <div class="video-metadata">
+                                        <span>Duration: ${video.duration.toFixed(1)}s</span>
+                                    </div>
+                                </div>
+                                ${vidIndex < chain.videos.length - 1 ? '<div class="video-connector">→</div>' : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('')}</div>`;
+        }
+
+        async function mergeChain(chainIndex) {
+            const chain = currentChains[chainIndex];
+
+            showStatus(`Merging ${chain.length} videos...`, 'info');
+
+            try {
+                const video_paths = chain.videos.map(v => v.path);
+                const response = await fetch(`${API_BASE}/api/merge`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ video_paths })
+                });
+
+                const data = await response.json();
+
+                showStatus(
+                    `Merged successfully! <a href="${API_BASE}/api/merged/${data.output_filename}"
+                     style="color: var(--color-accent-primary); text-decoration: underline; font-weight: 600;">
+                     Download ${data.output_filename}</a>`,
+                    'success'
+                );
+            } catch (error) {
+                showStatus(`Merge failed: ${error.message}`, 'error');
+            }
+        }
+
+        function showStatus(message, type = 'info', progress = null) {
+            const alert = document.getElementById('statusAlert');
+            const messageEl = document.getElementById('statusMessage');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+
+            alert.className = 'status-alert active';
+            if (type === 'success') alert.classList.add('success');
+            if (type === 'error') alert.classList.add('error');
+
+            messageEl.innerHTML = message;
+
+            if (progress !== null) {
+                progressBar.style.display = 'block';
+                progressFill.style.width = `${progress}%`;
+            } else {
+                progressBar.style.display = 'none';
+            }
+        }
+
+        function hideStatus() {
+            const alert = document.getElementById('statusAlert');
+            alert.classList.remove('active');
+        }
+    </script>
+</body>
+</html>

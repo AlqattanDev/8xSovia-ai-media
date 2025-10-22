@@ -1,0 +1,1035 @@
+<!-- 8xSovia UI/UX Enhancements for Prompts & Similar Items -->
+<!-- Add this section BEFORE the closing </style> tag in index.html -->
+
+<style>
+/* ============================================
+   PROMPT LIBRARY SIDEBAR STYLES
+   ============================================ */
+.prompt-library-sidebar {
+    position: fixed;
+    right: -400px;
+    top: 0;
+    width: 400px;
+    height: 100vh;
+    background: rgba(10, 10, 10, 0.98);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(255,255,255,0.1);
+    z-index: 1000;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.prompt-library-sidebar.open {
+    right: 0;
+}
+
+.prompt-library-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.prompt-library-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.prompt-library-close {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    transition: color 0.2s;
+}
+
+.prompt-library-close:hover {
+    color: white;
+}
+
+.prompt-library-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.prompt-search-box {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.prompt-search-input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.prompt-search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.5;
+}
+
+.prompt-section {
+    margin-bottom: 2rem;
+}
+
+.prompt-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.prompt-section-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.prompt-item {
+    padding: 0.75rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.prompt-item:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(102,126,234,0.3);
+    transform: translateX(-4px);
+}
+
+.prompt-item-text {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.prompt-item-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.5);
+}
+
+.prompt-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.prompt-stat-card {
+    background: rgba(102,126,234,0.1);
+    border: 1px solid rgba(102,126,234,0.2);
+    border-radius: 8px;
+    padding: 0.75rem;
+    text-align: center;
+}
+
+.prompt-stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #a5b4fc;
+}
+
+.prompt-stat-label {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.6);
+    margin-top: 0.25rem;
+}
+
+.prompt-generate-btn {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.prompt-generate-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102,126,234,0.3);
+}
+
+/* ============================================
+   PROMPT STUDIO MODAL STYLES
+   ============================================ */
+.prompt-studio-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.prompt-studio-modal.active {
+    display: flex;
+}
+
+.prompt-studio-content {
+    background: #1a1a1a;
+    border-radius: 16px;
+    max-width: 800px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.prompt-studio-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.prompt-studio-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.prompt-studio-body {
+    padding: 2rem;
+}
+
+.prompt-input-section {
+    margin-bottom: 2rem;
+}
+
+.prompt-input-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 0.5rem;
+}
+
+.prompt-input-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 1rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.prompt-input-textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    background: rgba(102,126,234,0.08);
+}
+
+.prompt-options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.prompt-option-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.prompt-variations-container {
+    margin-top: 2rem;
+}
+
+.prompt-variations-header {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.prompt-variation-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s;
+}
+
+.prompt-variation-card:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(102,126,234,0.3);
+}
+
+.prompt-variation-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 1rem;
+}
+
+.prompt-variation-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.prompt-variation-btn {
+    padding: 0.5rem 1rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: rgba(255,255,255,0.8);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.prompt-variation-btn:hover {
+    background: rgba(102,126,234,0.2);
+    border-color: rgba(102,126,234,0.4);
+    color: white;
+}
+
+/* ============================================
+   ENHANCED GALLERY CARD STYLES
+   ============================================ */
+.gallery-item-prompt-preview {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 70%, transparent 100%);
+    padding: 2rem 1rem 1rem 1rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: rgba(255,255,255,0.9);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.gallery-item-prompt-expand {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.5rem;
+    background: rgba(0,0,0,0.8);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.gallery-item-prompt-expand:hover {
+    background: rgba(102,126,234,0.3);
+    border-color: rgba(102,126,234,0.5);
+    color: white;
+}
+
+/* ============================================
+   QUICK ACTION BUTTONS - ALWAYS VISIBLE
+   ============================================ */
+.quick-actions-bar {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    z-index: 10;
+}
+
+.quick-action-new {
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    padding: 0.5rem;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.quick-action-new:hover {
+    background: rgba(102,126,234,0.3);
+    border-color: rgba(102,126,234,0.5);
+    transform: scale(1.1);
+}
+
+.quick-action-new.primary {
+    background: rgba(102,126,234,0.3);
+    border-color: rgba(102,126,234,0.5);
+}
+
+/* ============================================
+   SIMILAR ITEMS SIDE PANEL IN MODAL
+   ============================================ */
+.modal-layout {
+    display: flex;
+    height: 100%;
+}
+
+.modal-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-similar-panel {
+    width: 300px;
+    border-left: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.3);
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+.similar-panel-header {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.similar-panel-item {
+    margin-bottom: 1rem;
+    cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+}
+
+.similar-panel-item:hover {
+    border-color: rgba(102,126,234,0.5);
+    transform: scale(1.02);
+}
+
+.similar-panel-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.similar-panel-info {
+    background: rgba(0,0,0,0.7);
+    padding: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.similarity-score {
+    display: inline-block;
+    background: rgba(102,126,234,0.3);
+    border: 1px solid rgba(102,126,234,0.5);
+    border-radius: 12px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #a5b4fc;
+}
+
+/* ============================================
+   PROMPT LIBRARY TOGGLE BUTTON
+   ============================================ */
+.prompt-library-toggle {
+    position: fixed;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 12px 0 0 12px;
+    padding: 1rem 0.75rem;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    z-index: 999;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    box-shadow: -4px 0 20px rgba(102,126,234,0.3);
+    transition: all 0.3s;
+}
+
+.prompt-library-toggle:hover {
+    transform: translateY(-50%) translateX(-4px);
+    box-shadow: -8px 0 30px rgba(102,126,234,0.5);
+}
+
+.prompt-library-toggle.active {
+    right: 400px;
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+@media (max-width: 768px) {
+    .prompt-library-sidebar {
+        width: 100%;
+        right: -100%;
+    }
+
+    .prompt-library-sidebar.open {
+        right: 0;
+    }
+
+    .prompt-library-toggle.active {
+        right: 0;
+        opacity: 0.3;
+    }
+
+    .modal-similar-panel {
+        display: none;
+    }
+
+    .prompt-studio-content {
+        width: 95%;
+        max-height: 95vh;
+    }
+
+    .prompt-options-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   KEYBOARD SHORTCUTS INDICATOR
+   ============================================ */
+.keyboard-shortcut-hint {
+    display: inline-block;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    padding: 0.125rem 0.375rem;
+    font-size: 0.7rem;
+    font-family: monospace;
+    margin-left: 0.5rem;
+    opacity: 0.6;
+}
+</style>
+
+<!-- Add this HTML BEFORE the closing </body> tag in index.html -->
+
+<div id="enhancementsHTML">
+
+<!-- Prompt Library Toggle Button -->
+<button class="prompt-library-toggle" id="promptLibraryToggle" onclick="togglePromptLibrary()" title="Open Prompt Library (Keyboard: L)">
+    📚 PROMPT LIBRARY
+</button>
+
+<!-- Prompt Library Sidebar -->
+<div class="prompt-library-sidebar" id="promptLibrarySidebar">
+    <div class="prompt-library-header">
+        <div class="prompt-library-title">
+            📚 Prompt Library
+        </div>
+        <button class="prompt-library-close" onclick="togglePromptLibrary()">×</button>
+    </div>
+
+    <div class="prompt-library-content">
+        <!-- Search Box -->
+        <div class="prompt-search-box">
+            <span class="prompt-search-icon">🔍</span>
+            <input type="text" class="prompt-search-input" id="promptLibrarySearch"
+                   placeholder="Search prompts..." onkeyup="searchPromptLibrary(this.value)">
+        </div>
+
+        <!-- Stats -->
+        <div class="prompt-stats-grid" id="promptStatsGrid">
+            <div class="prompt-stat-card">
+                <div class="prompt-stat-value" id="totalPromptsCount">-</div>
+                <div class="prompt-stat-label">Total Prompts</div>
+            </div>
+            <div class="prompt-stat-card">
+                <div class="prompt-stat-value" id="customPromptsCount">-</div>
+                <div class="prompt-stat-label">Custom</div>
+            </div>
+        </div>
+
+        <!-- Generate Button -->
+        <button class="prompt-generate-btn" onclick="openPromptStudio()">
+            ✨ Generate New Prompts
+        </button>
+
+        <!-- Most Used Prompts -->
+        <div class="prompt-section">
+            <div class="prompt-section-header">
+                <div class="prompt-section-title">📊 Most Used</div>
+            </div>
+            <div id="mostUsedPrompts">
+                <div style="text-align: center; color: rgba(255,255,255,0.5); padding: 2rem;">
+                    Loading...
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Prompts -->
+        <div class="prompt-section">
+            <div class="prompt-section-header">
+                <div class="prompt-section-title">⏱️ Recently Used</div>
+            </div>
+            <div id="recentPrompts">
+                <div style="text-align: center; color: rgba(255,255,255,0.5); padding: 2rem;">
+                    Loading...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Prompt Studio Modal -->
+<div class="prompt-studio-modal" id="promptStudioModal">
+    <div class="prompt-studio-content">
+        <div class="prompt-studio-header">
+            <div class="prompt-studio-title">
+                ✨ Prompt Studio
+            </div>
+            <button class="prompt-library-close" onclick="closePromptStudio()">×</button>
+        </div>
+
+        <div class="prompt-studio-body">
+            <!-- Base Prompt Input -->
+            <div class="prompt-input-section">
+                <label class="prompt-input-label" for="basePromptInput">
+                    Base Prompt <span class="keyboard-shortcut-hint">Required</span>
+                </label>
+                <textarea class="prompt-input-textarea" id="basePromptInput"
+                          placeholder="Enter your base prompt here... (e.g., 'a cyberpunk city at night')"></textarea>
+                <div style="text-align: right; font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 0.25rem;">
+                    <span id="promptCharCount">0</span> characters
+                </div>
+            </div>
+
+            <!-- Options -->
+            <div class="prompt-options-grid">
+                <div class="prompt-option-group">
+                    <label class="prompt-input-label">Variation Type</label>
+                    <select id="variationType" style="padding: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; font-size: 0.9rem;">
+                        <option value="creative">Creative</option>
+                        <option value="technical">Technical</option>
+                        <option value="style">Style Variations</option>
+                        <option value="mood">Mood Variations</option>
+                    </select>
+                </div>
+                <div class="prompt-option-group">
+                    <label class="prompt-input-label">
+                        Number of Variations: <span id="variationCountLabel">5</span>
+                    </label>
+                    <input type="range" id="variationCount" min="1" max="10" value="5"
+                           oninput="document.getElementById('variationCountLabel').textContent = this.value"
+                           style="width: 100%;">
+                </div>
+            </div>
+
+            <!-- Generate Button -->
+            <button class="prompt-generate-btn" onclick="generatePromptVariations()" id="generateVariationsBtn">
+                ✨ Generate Variations
+            </button>
+
+            <!-- Generated Variations -->
+            <div class="prompt-variations-container" id="generatedVariationsContainer" style="display: none;">
+                <div class="prompt-variations-header">
+                    💡 Generated Variations
+                </div>
+                <div id="generatedVariationsList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<script>
+// ============================================
+// PROMPT LIBRARY FUNCTIONALITY
+// ============================================
+
+let promptLibraryData = {
+    stats: null,
+    prompts: [],
+    isOpen: false
+};
+
+// Toggle Prompt Library
+function togglePromptLibrary() {
+    const sidebar = document.getElementById('promptLibrarySidebar');
+    const toggle = document.getElementById('promptLibraryToggle');
+
+    promptLibraryData.isOpen = !promptLibraryData.isOpen;
+
+    if (promptLibraryData.isOpen) {
+        sidebar.classList.add('open');
+        toggle.classList.add('active');
+        loadPromptLibraryData();
+    } else {
+        sidebar.classList.remove('open');
+        toggle.classList.remove('active');
+    }
+}
+
+// Load Prompt Library Data
+async function loadPromptLibraryData() {
+    try {
+        // Load stats
+        const statsResponse = await fetch(`${API_BASE_URL}/api/prompts/stats`);
+        if (statsResponse.ok) {
+            const stats = await statsResponse.json();
+            promptLibraryData.stats = stats;
+
+            document.getElementById('totalPromptsCount').textContent = stats.total_unique_prompts || 0;
+            document.getElementById('customPromptsCount').textContent = stats.total_custom_prompts || 0;
+
+            // Display most used prompts
+            if (stats.most_used_prompts && stats.most_used_prompts.length > 0) {
+                renderMostUsedPrompts(stats.most_used_prompts);
+            }
+        }
+
+        // Load all prompts
+        const promptsResponse = await fetch(`${API_BASE_URL}/api/prompts?limit=50&sort=recent`);
+        if (promptsResponse.ok) {
+            const data = await promptsResponse.json();
+            promptLibraryData.prompts = data.prompts || [];
+            renderRecentPrompts(promptLibraryData.prompts.slice(0, 10));
+        }
+    } catch (error) {
+        console.error('Error loading prompt library:', error);
+        showToast('Failed to load prompt library', 'error');
+    }
+}
+
+// Render Most Used Prompts
+function renderMostUsedPrompts(prompts) {
+    const container = document.getElementById('mostUsedPrompts');
+
+    if (!prompts || prompts.length === 0) {
+        container.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.5); padding: 1rem;">No prompts yet</div>';
+        return;
+    }
+
+    container.innerHTML = prompts.map(item => `
+        <div class="prompt-item" onclick="searchByPrompt('${escapeHtml(item.prompt)}')">
+            <div class="prompt-item-text">${escapeHtml(item.prompt)}</div>
+            <div class="prompt-item-meta">
+                <span>Used ${item.count} times</span>
+                <span>👁️ View</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Render Recent Prompts
+function renderRecentPrompts(prompts) {
+    const container = document.getElementById('recentPrompts');
+
+    if (!prompts || prompts.length === 0) {
+        container.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.5); padding: 1rem;">No prompts yet</div>';
+        return;
+    }
+
+    container.innerHTML = prompts.map(item => `
+        <div class="prompt-item" onclick="searchByPrompt('${escapeHtml(item.prompt)}')">
+            <div class="prompt-item-text">${escapeHtml(item.prompt)}</div>
+            <div class="prompt-item-meta">
+                <span>${item.usage_count} uses</span>
+                <span>${new Date(item.last_used).toLocaleDateString()}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Search Prompt Library
+let promptSearchTimeout;
+async function searchPromptLibrary(query) {
+    clearTimeout(promptSearchTimeout);
+
+    if (!query || query.trim().length < 2) {
+        renderRecentPrompts(promptLibraryData.prompts.slice(0, 10));
+        return;
+    }
+
+    promptSearchTimeout = setTimeout(async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/prompts/search?q=${encodeURIComponent(query)}`);
+            if (response.ok) {
+                const data = await response.json();
+                renderRecentPrompts(data.prompts || []);
+            }
+        } catch (error) {
+            console.error('Error searching prompts:', error);
+        }
+    }, 300);
+}
+
+// Search by Prompt
+function searchByPrompt(prompt) {
+    document.getElementById('searchInput').value = prompt;
+    applyFilters();
+    togglePromptLibrary();
+    showToast(`Filtering by: "${prompt.substring(0, 50)}..."`, 'success');
+}
+
+// ============================================
+// PROMPT STUDIO FUNCTIONALITY
+// ============================================
+
+function openPromptStudio() {
+    document.getElementById('promptStudioModal').classList.add('active');
+    document.getElementById('basePromptInput').focus();
+}
+
+function closePromptStudio() {
+    document.getElementById('promptStudioModal').classList.remove('active');
+    document.getElementById('basePromptInput').value = '';
+    document.getElementById('generatedVariationsContainer').style.display = 'none';
+    document.getElementById('generatedVariationsList').innerHTML = '';
+}
+
+// Character count for prompt input
+document.addEventListener('DOMContentLoaded', () => {
+    const basePromptInput = document.getElementById('basePromptInput');
+    if (basePromptInput) {
+        basePromptInput.addEventListener('input', (e) => {
+            document.getElementById('promptCharCount').textContent = e.target.value.length;
+        });
+    }
+});
+
+// Generate Prompt Variations
+async function generatePromptVariations() {
+    const basePrompt = document.getElementById('basePromptInput').value.trim();
+    const variationType = document.getElementById('variationType').value;
+    const count = parseInt(document.getElementById('variationCount').value);
+    const btn = document.getElementById('generateVariationsBtn');
+
+    if (!basePrompt) {
+        showToast('Please enter a base prompt', 'error');
+        return;
+    }
+
+    // Disable button and show loading
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Generating...';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/prompts/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                base_prompt: basePrompt,
+                variation_type: variationType,
+                num_variations: count
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to generate variations');
+        }
+
+        const data = await response.json();
+
+        // Display variations
+        displayGeneratedVariations(data.variations || []);
+
+        showToast(`Generated ${count} variations!`, 'success');
+    } catch (error) {
+        console.error('Error generating prompts:', error);
+        showToast('Failed to generate variations. Make sure Ollama is running.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '✨ Generate Variations';
+    }
+}
+
+// Display Generated Variations
+function displayGeneratedVariations(variations) {
+    const container = document.getElementById('generatedVariationsContainer');
+    const list = document.getElementById('generatedVariationsList');
+
+    if (!variations || variations.length === 0) {
+        return;
+    }
+
+    container.style.display = 'block';
+
+    list.innerHTML = variations.map((variation, index) => `
+        <div class="prompt-variation-card">
+            <div class="prompt-variation-text">${escapeHtml(variation)}</div>
+            <div class="prompt-variation-actions">
+                <button class="prompt-variation-btn" onclick="usePromptVariation('${escapeHtml(variation)}')">
+                    ✓ Use This
+                </button>
+                <button class="prompt-variation-btn" onclick="copyToClipboard('${escapeHtml(variation)}', event)">
+                    📋 Copy
+                </button>
+                <button class="prompt-variation-btn" onclick="searchByPrompt('${escapeHtml(variation)}')">
+                    🔍 Search
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Use Prompt Variation
+function usePromptVariation(prompt) {
+    document.getElementById('basePromptInput').value = prompt;
+    showToast('Prompt updated! Generate more or close to use.', 'success');
+}
+
+// ============================================
+// KEYBOARD SHORTCUTS
+// ============================================
+
+document.addEventListener('keydown', (e) => {
+    // Ignore if typing in an input field
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+    }
+
+    switch(e.key.toLowerCase()) {
+        case 'l':
+            e.preventDefault();
+            togglePromptLibrary();
+            break;
+        case 'p':
+            e.preventDefault();
+            openPromptStudio();
+            break;
+        case 's':
+            if (currentModalPost) {
+                e.preventDefault();
+                // Focus on similar items
+                document.getElementById('similarItems')?.scrollIntoView({ behavior: 'smooth' });
+            }
+            break;
+    }
+});
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ============================================
+// ENHANCED GALLERY CARD RENDERING
+// ============================================
+
+// This function should be called to enhance existing gallery cards
+function enhanceGalleryCardsWithPrompts() {
+    const items = document.querySelectorAll('.gallery-item');
+
+    items.forEach(item => {
+        // Add Find Similar button if not already present
+        const overlay = item.querySelector('.gallery-item-overlay .overlay-top');
+        if (overlay && !overlay.querySelector('.quick-action-similar')) {
+            const similarBtn = document.createElement('button');
+            similarBtn.className = 'quick-action quick-action-similar';
+            similarBtn.setAttribute('aria-label', 'Find similar');
+            similarBtn.setAttribute('title', 'Find similar items (S)');
+            similarBtn.innerHTML = '👁️';
+            similarBtn.onclick = (e) => {
+                e.stopPropagation();
+                const postId = item.getAttribute('data-id');
+                openItemAndShowSimilar(postId);
+            };
+            overlay.appendChild(similarBtn);
+        }
+
+        // Add Prompt Studio button
+        if (overlay && !overlay.querySelector('.quick-action-prompt-studio')) {
+            const studioBtn = document.createElement('button');
+            studioBtn.className = 'quick-action quick-action-prompt-studio';
+            studioBtn.setAttribute('aria-label', 'Generate variations');
+            studioBtn.setAttribute('title', 'Generate prompt variations (P)');
+            studioBtn.innerHTML = '✨';
+            studioBtn.onclick = (e) => {
+                e.stopPropagation();
+                const prompt = item.querySelector('.item-prompt')?.textContent;
+                if (prompt && prompt !== 'No prompt available') {
+                    document.getElementById('basePromptInput').value = prompt;
+                    openPromptStudio();
+                } else {
+                    openPromptStudio();
+                }
+            };
+            overlay.appendChild(studioBtn);
+        }
+    });
+}
+
+// Open item and show similar
+function openItemAndShowSimilar(postId) {
+    const index = filteredPosts.findIndex(p => p.id === postId);
+    if (index !== -1) {
+        openModal(index);
+        // Similar items will load automatically in openModal
+    }
+}
+
+console.log('✨ 8xSovia UI Enhancements Loaded');
+console.log('Keyboard Shortcuts:');
+console.log('  L - Toggle Prompt Library');
+console.log('  P - Open Prompt Studio');
+console.log('  S - Focus Similar Items (in modal)');
+</script>
