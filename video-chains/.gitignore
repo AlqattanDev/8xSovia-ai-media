@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Cache files
+*.json.cache
+*_cache.json
+similarity_graph_cache.json
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test data (keep small samples, ignore large files)
+video_data_smart_FULL.json
+live_test_data.json
+
+# Temporary files
+*.tmp
+*.temp
