@@ -4,26 +4,19 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ChainPreviewModal from '@/components/ChainPreviewModal';
 import HelpModal from '@/components/HelpModal';
-
-interface Chain {
-  length: number;
-  avg_quality: number;
-  total_duration: number;
-  videos: Array<{
-    filename: string;
-    duration: number;
-    score?: number;
-  }>;
-}
+import type { Chain } from '@/types/chain';
+import { API_URL } from '@/config/api';
+import { getQualityColor, QUALITY_COLOR_CLASSES } from '@/utils/chainUtils';
 
 export default function DiscoverPage() {
   const [chains, setChains] = useState<Chain[]>([]);
   const [loading, setLoading] = useState(true);
-  const [minScore, setMinScore] = useState(0.6);
+  const [minScore, setMinScore] = useState(0.75);  // Default to 75% for faster results
   const [minLength, setMinLength] = useState(2);
   const [sortBy, setSortBy] = useState<'quality' | 'length' | 'duration'>('quality');
   const [previewChain, setPreviewChain] = useState<{ chain: Chain; index: number } | null>(null);
   const [showHelp, setShowHelp] = useState(false);
+  const [showUniqueOnly, setShowUniqueOnly] = useState(true);  // Default to showing unique first frames only
 
   useEffect(() => {
     loadChains();
@@ -33,10 +26,10 @@ export default function DiscoverPage() {
     setLoading(true);
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 600000); // 10 minute timeout for first-time AI processing
 
       const response = await fetch(
-        `http://localhost:8001/api/chains/smart?min_score=${minScore}&min_length=${minLength}`,
+        `${API_URL}/api/chains?min_length=${minLength}`,
         { signal: controller.signal }
       );
 
@@ -55,13 +48,16 @@ export default function DiscoverPage() {
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
           alert('⏰ Chain discovery is taking longer than expected.\n\n' +
-                'The AI is analyzing thousands of videos for the first time.\n' +
-                'This initial analysis may take several minutes.\n\n' +
-                '💡 TIP: Try raising the "Minimum Quality" slider to 70-80% for faster results.');
+                '🧠 The AI is computing similarity between all video pairs.\n' +
+                '⚡ First-time analysis can take 5-15 minutes.\n' +
+                '💾 Results are cached for instant future access.\n\n' +
+                '💡 FASTER RESULTS: Use 75-85% quality threshold.\n' +
+                '⚠️  Lower quality (below 60%) = MUCH slower processing.');
         } else {
           alert(`Error loading chains: ${error.message}\n\n` +
-                'The backend server may be processing a large dataset.\n' +
-                'Please wait a few minutes and try again.');
+                '🔧 Backend may be computing AI similarities.\n' +
+                '⏱️  First run takes 5-15 minutes (one-time only).\n' +
+                '💡 Try 75-80% quality for faster results.');
         }
       }
     } finally {
@@ -69,7 +65,31 @@ export default function DiscoverPage() {
     }
   }
 
-  const sortedChains = [...chains].sort((a, b) => {
+  // Group chains by first video's first_hash
+  const groupedChains = chains.reduce((groups, chain) => {
+    const firstHash = chain.videos[0]?.first_hash || 'unknown';
+    if (!groups[firstHash]) {
+      groups[firstHash] = [];
+    }
+    groups[firstHash].push(chain);
+    return groups;
+  }, {} as Record<string, Chain[]>);
+
+  // Get display chains based on unique filter
+  let displayChains: Chain[] = [];
+  if (showUniqueOnly) {
+    // Show only the best chain from each first-frame group
+    displayChains = Object.values(groupedChains).map(group => {
+      // Sort group by quality and take the best one
+      return group.sort((a, b) => b.avg_quality - a.avg_quality)[0];
+    });
+  } else {
+    // Show all chains
+    displayChains = chains;
+  }
+
+  // Sort the display chains
+  const sortedChains = [...displayChains].sort((a, b) => {
     if (sortBy === 'quality') return b.avg_quality - a.avg_quality;
     if (sortBy === 'length') return b.length - a.length;
     return b.total_duration - a.total_duration;
@@ -105,9 +125,43 @@ export default function DiscoverPage() {
           </p>
         </div>
 
+        {/* Info Banner */}
+        <div className="bg-green-600/20 backdrop-blur-lg rounded-2xl p-4 mb-6 border border-green-500/30">
+          <div className="flex items-start gap-3">
+            <div className="text-3xl">⚡</div>
+            <div className="flex-1">
+              <h3 className="text-white font-bold mb-1">Fast Frame-Based Chain Discovery</h3>
+              <p className="text-green-100 text-sm">
+                Using frame similarity matching for instant results! Finds videos with matching visual content.
+                Quality filter controls minimum similarity threshold between video frames.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Filters Panel */}
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-8 border border-white/20">
           <h2 className="text-2xl font-bold text-white mb-6">Filter & Sort</h2>
+
+          {/* Unique Filter Toggle */}
+          <div className="mb-6 pb-6 border-b border-white/20">
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={showUniqueOnly}
+                onChange={(e) => setShowUniqueOnly(e.target.checked)}
+                className="w-5 h-5 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
+              />
+              <div className="flex-1">
+                <span className="text-white font-semibold group-hover:text-blue-400 transition">
+                  Show only unique starting frames
+                </span>
+                <p className="text-sm text-gray-400 mt-1">
+                  Hide chains that start with the same video frame (recommended for better variety)
+                </p>
+              </div>
+            </label>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-6">
             {/* Minimum Quality */}
@@ -173,9 +227,21 @@ export default function DiscoverPage() {
               {loading ? (
                 <span className="animate-pulse">Loading chains...</span>
               ) : (
-                <span>
-                  Found <strong className="text-blue-400 text-xl">{chains.length}</strong> chains matching your criteria
-                </span>
+                <div className="space-y-2">
+                  <div>
+                    Showing <strong className="text-blue-400 text-xl">{sortedChains.length}</strong> chains
+                    {showUniqueOnly && chains.length > sortedChains.length && (
+                      <span className="text-gray-400">
+                        {' '}(filtered from <strong>{chains.length}</strong> total)
+                      </span>
+                    )}
+                  </div>
+                  {showUniqueOnly && (
+                    <div className="text-sm text-green-400">
+                      ✓ Showing only unique starting frames for better variety
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -195,14 +261,19 @@ export default function DiscoverPage() {
           </div>
         ) : (
           <div className="grid gap-6">
-            {sortedChains.map((chain, idx) => (
-              <ChainCard
-                key={idx}
-                chain={chain}
-                index={idx}
-                onPreview={() => setPreviewChain({ chain, index: idx })}
-              />
-            ))}
+            {sortedChains.map((chain, idx) => {
+              const firstHash = chain.videos[0]?.first_hash || 'unknown';
+              const variantCount = groupedChains[firstHash]?.length || 1;
+              return (
+                <ChainCard
+                  key={idx}
+                  chain={chain}
+                  index={idx}
+                  variantCount={variantCount}
+                  onPreview={() => setPreviewChain({ chain, index: idx })}
+                />
+              );
+            })}
           </div>
         )}
       </div>
@@ -235,24 +306,31 @@ export default function DiscoverPage() {
   );
 }
 
-function ChainCard({ chain, index, onPreview }: { chain: Chain; index: number; onPreview: () => void }) {
+function ChainCard({ chain, index, variantCount, onPreview }: {
+  chain: Chain;
+  index: number;
+  variantCount: number;
+  onPreview: () => void
+}) {
   const qualityPercent = (chain.avg_quality * 100).toFixed(1);
-  const qualityColor = chain.avg_quality >= 0.8 ? 'green' :
-                       chain.avg_quality >= 0.6 ? 'yellow' : 'orange';
-
-  const colorClasses = {
-    green: 'from-green-600 to-green-700',
-    yellow: 'from-yellow-600 to-yellow-700',
-    orange: 'from-orange-600 to-orange-700'
-  };
+  const qualityColor = getQualityColor(chain.avg_quality);
 
   return (
     <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:border-blue-500 transition transform hover:scale-[1.02]">
       <div className="flex items-start justify-between mb-4">
-        <div>
-          <h3 className="text-2xl font-bold text-white mb-2">
-            Chain #{index + 1}
-          </h3>
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            <h3 className="text-2xl font-bold text-white">
+              Chain #{index + 1}
+            </h3>
+            {variantCount > 1 && (
+              <div className="bg-purple-600/80 backdrop-blur px-3 py-1 rounded-full">
+                <span className="text-white text-sm font-semibold">
+                  +{variantCount - 1} variant{variantCount > 2 ? 's' : ''}
+                </span>
+              </div>
+            )}
+          </div>
           <div className="flex gap-4 text-gray-300">
             <span className="flex items-center gap-2">
               🎬 <strong>{chain.length}</strong> videos
@@ -264,7 +342,7 @@ function ChainCard({ chain, index, onPreview }: { chain: Chain; index: number; o
         </div>
 
         {/* Quality Badge */}
-        <div className={`bg-gradient-to-br ${colorClasses[qualityColor]} px-6 py-3 rounded-xl shadow-lg`}>
+        <div className={`bg-gradient-to-br ${QUALITY_COLOR_CLASSES[qualityColor]} px-6 py-3 rounded-xl shadow-lg`}>
           <div className="text-sm text-white/80 font-semibold">Quality Score</div>
           <div className="text-3xl font-bold text-white">{qualityPercent}%</div>
         </div>

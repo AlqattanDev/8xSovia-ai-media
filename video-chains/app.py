@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import os
 from video_analyzer import VideoAnalyzer
+from utils.error_handler import handle_api_error
 import subprocess
 from typing import List, Optional
 import sys
@@ -160,10 +161,50 @@ async def get_chains(min_length: int = 2, threshold: int = 15):
             future = executor.submit(analyzer.find_chains, threshold, min_length)
             chains = future.result(timeout=30)  # 30 second timeout
 
-        # Get detailed info for each chain (limit to top 20 for performance)
+        # Implement diversity sampling - group ALL chains by first video
+        from collections import defaultdict
+        chains_by_first_frame = defaultdict(list)
+
+        # Sample across ALL chains to find different starting frames
+        # Use step sampling to spread across the entire list
+        sample_step = max(1, len(chains) // 5000)  # Sample ~5000 chains evenly distributed
+        for i in range(0, len(chains), sample_step):
+            chain = chains[i]
+            first_video = chain[0]
+            first_hash = analyzer.videos[first_video]['first_hash']
+            chains_by_first_frame[first_hash].append(chain)
+
+        # Take the longest chain from each unique starting frame
+        diverse_chains = []
+        for first_hash, chain_group in chains_by_first_frame.items():
+            # Sort by length and take the longest
+            best_chain = max(chain_group, key=len)
+            diverse_chains.append(best_chain)
+
+        # Sort diverse chains by length and take top 100
+        diverse_chains.sort(key=len, reverse=True)
+
+        print(f"✨ Found {len(diverse_chains)} unique starting frames from {len(chains)} total chains (sampled every {sample_step} chains)")
+
+        # Get detailed info for each diverse chain
         chain_data = []
-        for chain in chains[:20]:  # Only return top 20 longest chains
+        for chain in diverse_chains[:100]:  # Return top 100 diverse chains
             info = analyzer.get_chain_info(chain)
+
+            # Calculate quality score based on frame similarity
+            scores = []
+            for i in range(len(chain) - 1):
+                last_hash = analyzer.videos[chain[i]]['last_hash']
+                first_hash = analyzer.videos[chain[i+1]]['first_hash']
+                distance = analyzer.hash_distance(last_hash, first_hash)
+                # Convert distance to similarity score (0-1, lower distance = higher quality)
+                quality = max(0, 1 - (distance / 64.0))  # 64 is max hash distance for 16-bit hash
+                scores.append(quality)
+                info['videos'][i+1]['score'] = quality
+
+            # Average quality for the whole chain
+            info['avg_quality'] = sum(scores) / len(scores) if scores else 0.0
+
             chain_data.append(info)
 
         result = {
@@ -177,10 +218,8 @@ async def get_chains(min_length: int = 2, threshold: int = 15):
         chains_cache[cache_key] = result
 
         return result
-    except concurrent.futures.TimeoutError:
-        raise HTTPException(status_code=504, detail="Chain finding timed out.")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        handle_api_error(e, timeout_message="Chain finding timed out.")
 
 
 @app.get("/api/chains/smart")
@@ -266,10 +305,8 @@ async def get_smart_chains(min_score: float = 0.6, min_length: int = 2):
         chains_cache[cache_key] = result
 
         return result
-    except concurrent.futures.TimeoutError:
-        raise HTTPException(status_code=504, detail="Smart chain finding timed out.")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        handle_api_error(e, timeout_message="Smart chain finding timed out.")
 
 
 @app.get("/api/video/{path:path}")
@@ -338,7 +375,7 @@ async def merge_videos(request: MergeRequest):
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        handle_api_error(e)
 
 
 @app.get("/api/merged/{filename}")

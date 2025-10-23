@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { API_ENDPOINTS } from '@/config/api';
 
 export default function Home() {
   const [stats, setStats] = useState<any>(null);
@@ -10,7 +11,7 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
-    fetch('http://localhost:8001/api/info')
+    fetch(API_ENDPOINTS.info)
       .then(res => res.json())
       .then(data => {
         setStats(data);
@@ -24,15 +25,7 @@ export default function Home() {
 
   // Prevent hydration mismatch by not rendering dynamic content until mounted
   if (!mounted) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" suppressHydrationWarning>
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -124,7 +117,7 @@ export default function Home() {
             </button>
           </Link>
 
-          <a href="http://localhost:8001/docs" target="_blank" rel="noopener noreferrer">
+          <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer">
             <button className="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-8 rounded-xl shadow-xl transform hover:scale-105 transition text-lg">
               📖 API Documentation
             </button>

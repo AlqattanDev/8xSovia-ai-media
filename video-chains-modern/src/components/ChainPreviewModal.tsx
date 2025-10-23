@@ -1,19 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-
-interface Video {
-  filename: string;
-  duration: number;
-  score?: number;
-}
-
-interface Chain {
-  length: number;
-  avg_quality: number;
-  total_duration: number;
-  videos: Video[];
-}
+import type { Chain, Video } from '@/types/chain';
+import { API_ENDPOINTS } from '@/config/api';
 
 interface ChainPreviewModalProps {
   chain: Chain;
@@ -117,7 +106,7 @@ export default function ChainPreviewModal({ chain, chainIndex, onClose }: ChainP
           <div className="bg-black rounded-xl overflow-hidden mb-6 relative">
             <video
               ref={videoRef}
-              src={`http://localhost:8001/api/video/${currentVideo.filename}`}
+              src={API_ENDPOINTS.video(currentVideo.path)}
               className="w-full aspect-video"
               onEnded={handleVideoEnd}
               controls
